@@ -11,7 +11,7 @@ var recBuffer = [];
 const recordBtn = document.querySelector("#rec");
 const speaker = document.getElementById("speaker");
 
-var ws = new WebSocket("wss://192.168.1.88:2345",'walkietalkie');
+var ws = new WebSocket("wss://192.168.1.88",'walkietalkie');
 ws.binaryType = 'arraybuffer';
 ws.onopen = function(e){
     ws.send("HELLO WORLD");

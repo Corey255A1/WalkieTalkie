@@ -4,14 +4,29 @@
     margin: 0 auto;
 }
 
-button{
-    margin-bottom: 10px;
+.antenna{
+    border-right: 5px solid black;
+    height: 50px;
 }
 
-.speaker{
+.handset{
+    background-color: yellow;
+    display: inline-block;
+    padding: 5px;
+    border: 5px solid black;
+    height: 500px;
+}
+
+.box{
     margin: 0 auto;
     width: 200px;
     height: 200px;
+    padding: 5px;
+}
+
+.speaker{
+    height: 100%;
+    width: 100%;
     border-radius: 50%;
     background-image: radial-gradient(rgb(80, 80, 80) 0%, rgb(70, 70, 70), 15%, black 16%, rgb(80, 80, 80) 20%, rgb(50, 50, 50) 100%);
     border: 10px solid black;
@@ -23,8 +38,8 @@ button{
 }
 
 .ptt-btn{
-    width: 200px;
-    height: 200px;
+    height: 100%;
+    width: 100%;
     border-radius: 50%;
     background-color: green;
     color:white;

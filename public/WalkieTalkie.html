@@ -4,13 +4,22 @@
     <meta charset="UTF-8">
     <title>Walkie-Talkie</title>
     <link rel="stylesheet" href="WalkieTalkie.css">
-    <meta name="viewport" content="width=1280, initial-scale=1">
+    <!--<meta name="viewport" content="width=1280, initial-scale=1">-->
 </head>
 <body>
     <div class="container">
-        <div id="speaker" class="speaker"></div><br>
-        <button id="rec" class="ptt-btn">PTT</button><br>
-        <button id="play">Play Last Clip</button>
+        <div class="antenna"></div>
+        <div class="handset">
+            <div class="box">
+                <div id="speaker" class="speaker"></div>
+            </div>
+            <div class="box">
+                <button id="rec" class="ptt-btn">PTT</button>
+            </div>
+            <div class="box">
+                <button id="play">Play Last Tx Clip</button>
+            </div>
+        </div>
     </div>
     
     <script src="WalkieTalkie.js" type="text/javascript" charset="utf-8"></script>

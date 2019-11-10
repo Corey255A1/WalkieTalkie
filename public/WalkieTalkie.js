@@ -8,6 +8,8 @@ var mic = null;
 var recording = false;
 
 var recBuffer = [];
+const recordBtn = document.querySelector("#rec");
+const speaker = document.getElementById("speaker");
 
 var ws = new WebSocket("wss://192.168.1.88:2345",'walkietalkie');
 ws.binaryType = 'arraybuffer';
@@ -30,9 +32,11 @@ ws.onmessage = function(e){
             buffersource.buffer = NetBuff
             buffersource.onended = ()=>{
                 donePlaying = true;
+                speaker.classList.remove("speaker-talking");
             }
             buffersource.connect(audioCtx.destination);
             donePlaying = false;
+            speaker.classList.add("speaker-talking");
             buffersource.start();
         }
     }
@@ -40,6 +44,7 @@ ws.onmessage = function(e){
 
 
 function Record(){
+  if(recording) return;
   recBuffer = [];
   if(audioCtx==undefined){
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -50,15 +55,12 @@ function Record(){
             mic = audioCtx.createMediaStreamSource(s);
             scriptNode = audioCtx.createScriptProcessor(BUFFSIZE, 1, 1);
             scriptNode.onaudioprocess = function(audioData){
-                //realtimeBuffer = audproc.inputBuffer.getChannelData(0);
                 if(recording){
                     var bytes = new Float32Array(audioData.inputBuffer.getChannelData(0));
                     ws.send(bytes);
                     recBuffer.push(bytes);
                 }
             };
-            
-            //window.requestAnimationFrame(update)
         })
         .catch(function (e) {
             console.log('Darn something bad happened ' + e);
@@ -67,8 +69,7 @@ function Record(){
     if(mic !== null){
         if(buffersource!= null){
            buffersource.disconnect();
-        }
-        
+        }        
         mic.connect(scriptNode);
         scriptNode.connect(audioCtx.destination);
         recording =  true;
@@ -101,6 +102,12 @@ function Playback(){
     
 }
 
-document.querySelector("#rec").addEventListener("mousedown", Record);
-document.querySelector("#rec").addEventListener("mouseup", StopRecord);
+
+recordBtn.addEventListener("mousedown", Record);
+recordBtn.addEventListener("mouseup", StopRecord);
+
+recordBtn.addEventListener("touchstart", Record);
+recordBtn.addEventListener("touchend", StopRecord);
+
+
 document.querySelector("#play").addEventListener("click", Playback);

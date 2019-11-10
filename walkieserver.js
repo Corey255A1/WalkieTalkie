@@ -11,19 +11,19 @@ app.get('/',(req,res)=>{
     res.sendFile(path.join(__dirname + '/public/WalkieTalkie.html'));
 })
 
-const testServer = https.createServer({
+const webServer = https.createServer({
     key:fs.readFileSync('walkieserver.key'),
     cert: fs.readFileSync('walkieserver.cert')},
-    app).listen(2345, ()=>{
+    app).listen(443, ()=>{
         console.log("LISTENING HTTPS!");
     })
 
-//const testServer = app.listen(2345,"0.0.0.0",()=>{
+//const webServer = app.listen(2345,"0.0.0.0",()=>{
 //    console.log("Listening!");
 //});
 
 wsServer = new WebSocketServer({
-    httpServer: testServer,
+    httpServer: webServer,
     autoAcceptConnections: false
 });
 

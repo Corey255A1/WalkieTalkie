@@ -1,7 +1,8 @@
 var audioCtx = undefined;
 var audioBuff = null;
 var scriptNode = null;
-const BUFFSIZE = 1024;
+const BUFFSIZE = 256;
+const SAMPLE_SIZE = 8192;
 var buffersource = null;
 var mic = null;
 
@@ -11,7 +12,15 @@ var recBuffer = [];
 const recordBtn = document.querySelector("#rec");
 const speaker = document.getElementById("speaker");
 
-var ws = new WebSocket("wss://192.168.1.88",'walkietalkie');
+const msg = document.getElementById("msg");
+
+window.oncontextmenu = function(event) {
+     event.preventDefault();
+     event.stopPropagation();
+     return false;
+};
+
+var ws = new WebSocket("wss://192.168.1.88:2345",'walkietalkie');
 ws.binaryType = 'arraybuffer';
 ws.onopen = function(e){
     ws.send("HELLO WORLD");
@@ -21,23 +30,33 @@ ws.onopen = function(e){
 var NetBuff = null; 
 var NetChanData = null;
 var donePlaying = true;
+var packetBuffer = [];
+
+function bufferDonePlaying(){
+    if(packetBuffer.length>0){
+        var floatbuff = packetBuffer.pop();
+        for(var ab=0; ab<floatbuff.length; ab++){
+            NetChanData[ab] = floatbuff[ab];
+        }
+        buffersource = audioCtx.createBufferSource();
+        buffersource.buffer = NetBuff;
+        buffersource.onended = bufferDonePlaying;
+        buffersource.connect(audioCtx.destination);
+        buffersource.start();
+    }else{
+        donePlaying = true;
+        speaker.classList.remove("speaker-talking");
+    }
+}
+
 ws.onmessage = function(e){
+    var floatbuff = new Float32Array(e.data);
+    packetBuffer.push(floatbuff);
     if(donePlaying){
-        var floatbuff = new Float32Array(e.data);
         if(NetBuff!==null){
-            for(var ab=0; ab<floatbuff.length; ab++){
-                NetChanData[ab] = floatbuff[ab];
-            }
-            buffersource = audioCtx.createBufferSource();
-            buffersource.buffer = NetBuff
-            buffersource.onended = ()=>{
-                donePlaying = true;
-                speaker.classList.remove("speaker-talking");
-            }
-            buffersource.connect(audioCtx.destination);
             donePlaying = false;
             speaker.classList.add("speaker-talking");
-            buffersource.start();
+            bufferDonePlaying();
         }
     }
 }
@@ -47,8 +66,9 @@ function Record(){
   if(recording) return;
   recBuffer = [];
   if(audioCtx==undefined){
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    NetBuff = audioCtx.createBuffer(1, BUFFSIZE, audioCtx.sampleRate);
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)({sampleRate:SAMPLE_SIZE});
+    msg.textContent = "Audio Sample Rate: " + audioCtx.sampleRate +"Hz";
+    NetBuff = audioCtx.createBuffer(1, BUFFSIZE, SAMPLE_SIZE);
     NetChanData = NetBuff.getChannelData(0);
     navigator.mediaDevices.getUserMedia({ audio: true })
         .then(function (s) {

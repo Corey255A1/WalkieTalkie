@@ -14,7 +14,7 @@ app.get('/',(req,res)=>{
 const webServer = https.createServer({
     key:fs.readFileSync('walkieserver.key'),
     cert: fs.readFileSync('walkieserver.cert')},
-    app).listen(443, ()=>{
+    app).listen(process.env.PORT, "0.0.0.0", ()=>{
         console.log("LISTENING HTTPS!");
     })
 

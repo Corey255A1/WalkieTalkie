@@ -1,7 +1,10 @@
 .container{
     text-align: center;
-    width: 50%;
     margin: 0 auto;
+}
+
+.handset-container{
+    display: inline-block;
 }
 
 .antenna{
@@ -10,11 +13,10 @@
 }
 
 .handset{
-    background-color: yellow;
-    display: inline-block;
+    background-image: linear-gradient(to right, yellow, rgb(200,200,0));
     padding: 5px;
     border: 5px solid black;
-    height: 500px;
+    box-shadow: 5px 5px 10px black
 }
 
 .box{
@@ -46,4 +48,21 @@
     font-size: 2rem;
     font-weight: bold;
 
+}
+
+.ptt-btn:focus{
+    outline:0;
+}
+#msg{
+    margin-top: 10px;
+}
+
+.noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
 }

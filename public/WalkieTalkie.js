@@ -41,6 +41,7 @@ function bufferDonePlaying(){
         buffersource = audioCtx.createBufferSource();
         buffersource.buffer = NetBuff;
         buffersource.onended = bufferDonePlaying;
+        
         buffersource.connect(audioCtx.destination);
         buffersource.start();
     }else{
@@ -50,32 +51,51 @@ function bufferDonePlaying(){
 }
 
 ws.onmessage = function(e){
-    var floatbuff = new Float32Array(e.data);
-    packetBuffer.push(floatbuff);
-    if(donePlaying){
-        if(NetBuff!==null){
-            donePlaying = false;
-            speaker.classList.add("speaker-talking");
-            bufferDonePlaying();
+    if(typeof e.data === "string"){
+        console.log("STRING MESSAGE " + e.data);
+    }else{
+        var floatbuff = new Float32Array(e.data);
+        packetBuffer.push(floatbuff);
+        if(donePlaying){
+            if(NetBuff!==null){
+                mic.disconnect();
+                scriptNode.disconnect();
+                donePlaying = false;
+                speaker.classList.add("speaker-talking");
+                bufferDonePlaying();
+            }
         }
     }
 }
 
 
 function Record(){
+  //msg.textContent = "TOUCH";
   if(recording) return;
+  //msg.textContent = "Going";
   recBuffer = [];
-  if(audioCtx==undefined){
+  if(audioCtx===undefined){
     audioCtx = new (window.AudioContext || window.webkitAudioContext)({sampleRate:SAMPLE_SIZE});
     msg.textContent = "Audio Sample Rate: " + audioCtx.sampleRate +"Hz";
     NetBuff = audioCtx.createBuffer(1, BUFFSIZE, SAMPLE_SIZE);
     NetChanData = NetBuff.getChannelData(0);
     navigator.mediaDevices.getUserMedia({ audio: true })
         .then(function (s) {
+            //msg.textContent = "CREATING SOURCE";
             mic = audioCtx.createMediaStreamSource(s);
             scriptNode = audioCtx.createScriptProcessor(BUFFSIZE, 1, 1);
+            buffersource = audioCtx.createBufferSource();
+            
+            buffersource = audioCtx.createBufferSource();
+            buffersource.buffer = NetBuff;
+            buffersource.connect(audioCtx.destination);
+            buffersource.start();
+            
+            
             scriptNode.onaudioprocess = function(audioData){
+                //msg.textContent = "PROCESSING"
                 if(recording){
+                    //msg.textContent = "TX";
                     var bytes = new Float32Array(audioData.inputBuffer.getChannelData(0));
                     ws.send(bytes);
                     recBuffer.push(bytes);
@@ -86,10 +106,13 @@ function Record(){
             console.log('Darn something bad happened ' + e);
         });
     }
+    //msg.textContent="MIC?"
     if(mic !== null){
-        if(buffersource!= null){
+        //msg.textContent = "NULL?"
+        if(buffersource!== null){
            buffersource.disconnect();
-        }        
+        }
+        //msg.textContent = "STARTING";
         mic.connect(scriptNode);
         scriptNode.connect(audioCtx.destination);
         recording =  true;
@@ -98,6 +121,7 @@ function Record(){
 
 function StopRecord(){
     if(mic!=null){
+        //msg.textContent = "";
         recording = false;
         scriptNode.disconnect();
         mic.disconnect();
@@ -130,4 +154,4 @@ recordBtn.addEventListener("touchstart", Record);
 recordBtn.addEventListener("touchend", StopRecord);
 
 
-document.querySelector("#play").addEventListener("click", Playback);
+//document.querySelector("#play").addEventListener("click", Playback);

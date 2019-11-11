@@ -33,8 +33,10 @@ wsServer.on('request', function(req){
     console.log("connection requested");
     var conn = req.accept('walkietalkie', req.origin);
     ClientList.push(conn);
+    conn.sendUTF("HELLO");
     conn.on('message',function(msg){
         if(msg.type === 'binary'){
+            //console.log("BIN");
             for(var c=0; c<ClientList.length; c++){
               if(ClientList[c] != conn){
                   ClientList[c].sendBytes(msg.binaryData);

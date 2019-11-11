@@ -8,15 +8,31 @@
 }
 
 .antenna{
-    border-right: 5px solid black;
-    height: 50px;
+    border: 15px solid black;
+    height: 30px;
+    width: 1px;
+    margin-left: 75%;
+    background-color: black;
+    border-radius: 50% 50% 0% 0%;
 }
 
 .handset{
     background-image: linear-gradient(to right, yellow, rgb(200,200,0));
     padding: 5px;
     border: 5px solid black;
-    box-shadow: 5px 5px 10px black
+    box-shadow: 5px 5px 10px black;
+    border-radius: 10%;
+}
+
+.radio-display{
+    margin: 0 auto;
+    width: 150px;
+    height: 75px;
+    background-color: lightgreen;
+    border: 2px solid green;
+    text-transform: uppercase;
+    font-size: 12px;
+    border-radius: 5%;
 }
 
 .box{

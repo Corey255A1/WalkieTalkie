@@ -43,6 +43,13 @@ wsServer.on('request', function(req){
               }  
             }
         }
+        else{
+            for(var c=0; c<ClientList.length; c++){
+              if(ClientList[c] != conn){
+                  ClientList[c].sendUTF(msg.utf8Data);
+              }  
+            }
+        }
         //console.log(msg);
     });
     conn.on('close',function(reason,desc){

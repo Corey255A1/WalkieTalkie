@@ -24,6 +24,22 @@
     border-radius: 10%;
 }
 
+.wide-btn{
+    background-color: black;
+    font-size: 1.2em;
+    font-weight: bold;
+    
+    color:white;
+}
+
+#link{
+    display: none;
+}
+
+#link.copy{
+    display: inline-block;
+}
+
 .radio-display{
     margin: 0 auto;
     width: 150px;
@@ -105,6 +121,10 @@
     outline:0;
 }
 
+.label{
+    font-weight: bold;
+    margin:0;
+}
 
 #msg{
     margin-top: 10px;

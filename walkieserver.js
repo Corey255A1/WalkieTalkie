@@ -5,24 +5,30 @@ const path = require('path');
 const fs = require('fs');
 const app = Express();
 
+const ROOT = "192.168.1.88:2345";
+
 app.use(Express.static(__dirname + '/public'));
 app.set('view engine', 'ejs'); 
 
 app.get('/',(req,res)=>{
     //res.sendFile(path.join(__dirname + '/public/WalkieTalkie.html'));
+    //create random channel
+    var chan = createChannelString();
     res.render("walkietalkie",{
-        socketPath: "wss://192.168.1.88:2345",
-        channelID:"not specified"
+        socketPath: "wss://"+ROOT+"/channel/" + chan,
+        channelID: chan,
+        link: "https://"+ROOT+"/channel/" + chan
     });
 })
 
 //Use hte channelID to specify the "channel" of the radio
-app.get('/:channelID',(req,res)=>{
-    console.log(req.params.channelID);
+app.get('/channel/:channelID',(req,res)=>{
+    //console.log(req.params.channelID);
     //res.sendFile(path.join(__dirname + '/public/WalkieTalkie.html'));
     res.render("walkietalkie",{
-        socketPath: "wss://192.168.1.88:2345/"+req.params.channelID,
-        channelID: req.params.channelID
+        socketPath: "wss://"+ROOT+"/channel/"+req.params.channelID,
+        channelID: req.params.channelID,
+        link: "https://"+ROOT+"/channel/" + req.params.channelID
     });
     
 })
@@ -30,7 +36,7 @@ app.get('/:channelID',(req,res)=>{
 const webServer = https.createServer({
     key:fs.readFileSync('walkieserver.key'),
     cert: fs.readFileSync('walkieserver.cert')},
-    app).listen(process.env.PORT, "0.0.0.0", ()=>{
+    app).listen(process.env.PORT || 443, "0.0.0.0", ()=>{
         console.log("LISTENING HTTPS!");
     })
 
@@ -95,12 +101,23 @@ function ProcessPacket(client, packet)
     chan.tick = 2;
 }
 
+const MAX_CHANNELS = 4000000000;
 
+function createChannelString(){
+    return Math.floor(Math.random() * MAX_CHANNELS).toString(36);
+}
 
+//Verify cross origin and all that nonsense
 wsServer.on('request', function(req){
     console.log("connection requested");
     var conn = req.accept('walkietalkie', req.origin);
-    conn.ChannelID = req.resource;
+    //Not Very Secure
+    if(req.resource.startsWith("/channel/")){
+        conn.ChannelID = req.resource;
+    }
+    else{
+        conn.ChannelID = "/channel/"+createChannelString();
+    }
     if(!(conn.ChannelID in ChannelMap)){
         ChannelMap[conn.ChannelID] = createChannelEntry();
     }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Walkie-Talkie</title>
-    <link rel="stylesheet" href="WalkieTalkie.css">
+    <link rel="stylesheet" href="/WalkieTalkie.css">
     <meta name="viewport" content="initial-scale=1">
 </head>
 <body>
@@ -27,23 +27,25 @@
                     <div id="msg3"></div>
                 </div>
                 <div class="box">
-                    <button class="ctrl-btn">&#8678;</button>
-                    <button class="ctrl-btn">&#8680;</button>
+                    <!--<button class="ctrl-btn">&#8678;</button>
+                    <button class="ctrl-btn">&#8680;</button>-->
+                    <button id="getlink" class="wide-btn">Get Link</button>
                 </div>
                 <div class="box">
-                    <button id="ptt" class="ptt-btn">PTT</button>
+                    <div class="label">Push-To-Talk</div>
+                    <button id="ptt" class="ptt-btn"></button>
                 </div>
                 <!--<div>
                     <button id="play" class="no-select">Play Last Tx Clip</button>
                 </div>-->
             </div>
         </div>
-        
+        <input id="link" type="text" value="<%= link %>">
     </div>
     <script>
         const WEBSOCKET_CHANNEL = "<%= socketPath %>";
         const CHANNEL_ID  = "<%= channelID %>";
     </script>
-    <script src="WalkieTalkie.js" type="text/javascript" charset="utf-8"></script>
+    <script src="/WalkieTalkie.js" type="text/javascript" charset="utf-8"></script>
 </body>
 </html>

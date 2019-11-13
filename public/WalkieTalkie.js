@@ -24,7 +24,19 @@ const msg = {
 }
 const powerBtn = document.getElementById("power");
 
+const getLink = document.getElementById("getlink");
+const link = document.getElementById("link");
+
+getLink.addEventListener("click", ()=>{
+  link.classList.add("copy");
+  link.select();
+  link.setSelectionRange(0, 99999); /*For mobile devices*/
+  document.execCommand("copy");
+  link.classList.remove("copy");
+});
+
 powerBtn.addEventListener("click", PowerOn);
+
 
 window.oncontextmenu = function(event) {
      event.preventDefault();

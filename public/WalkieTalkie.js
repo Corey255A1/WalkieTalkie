@@ -9,10 +9,22 @@ var mic = null;
 var recording = false;
 
 var recBuffer = [];
-const recordBtn = document.querySelector("#rec");
-const speaker = document.getElementById("speaker");
+var NetBuff = null; 
+var NetChanData = null;
+var audioFinished = true;
+var packetBuffer = [];
+var receivingTx = false;
 
-const msg = document.getElementById("msg");
+const recordBtn = document.getElementById("ptt");
+const speaker = document.getElementById("speaker");
+const msg = {
+    msg1:document.getElementById("msg1"),
+    msg2:document.getElementById("msg2"),
+    msg3:document.getElementById("msg3"),
+}
+const powerBtn = document.getElementById("power");
+
+powerBtn.addEventListener("click", PowerOn);
 
 window.oncontextmenu = function(event) {
      event.preventDefault();
@@ -20,18 +32,40 @@ window.oncontextmenu = function(event) {
      return false;
 };
 
-var ws = new WebSocket("wss://192.168.1.88:2345",'walkietalkie');
-ws.binaryType = 'arraybuffer';
-ws.onopen = function(e){
-    ws.send("HELLO WORLD");
+var ws = null;
+
+function CreateWebsocket(){
+    ws = new WebSocket(WEBSOCKET_CHANNEL || "wss://192.168.1.88:2345",'walkietalkie');
+    ws.binaryType = 'arraybuffer';
+    ws.onopen = function(e){
+        ws.send("HELLO WORLD");
+    }
+    ws.onmessage = function(e){
+    if(typeof e.data === "string"){
+            console.log("CMD:" + e.data);
+            if(e.data==="TX"){
+                msg["msg1"].textContent = "RX";
+                receivingTx = true;
+                mic.disconnect();
+                scriptNode.disconnect();
+                speaker.classList.add("speaker-talking");
+            }
+            else if(e.data==="OV" && receivingTx){
+                msg["msg1"].textContent = "";
+                receivingTx = false;
+                speaker.classList.remove("speaker-talking");
+                processBuffer();
+            }
+        }else{
+            var floatbuff = new Float32Array(e.data);
+            packetBuffer.push(floatbuff);
+            if(NetBuff!==null){
+                processBuffer();
+            }
+        }
+    }
 }
 
-
-var NetBuff = null; 
-var NetChanData = null;
-var audioFinished = true;
-var packetBuffer = [];
-var receivingTx = false;
 
 function audioFinishedCB(){
     audioFinished = true;
@@ -68,55 +102,25 @@ function processBuffer(){
     }
 }
 
-ws.onmessage = function(e){
-    if(typeof e.data === "string"){
-        console.log("CMD:" + e.data);
-        if(e.data==="TX"){
-            receivingTx = true;
-            mic.disconnect();
-            scriptNode.disconnect();
-            speaker.classList.add("speaker-talking");
-        }
-        else if(e.data==="OV" && receivingTx){
-            receivingTx = false;
-            speaker.classList.remove("speaker-talking");
-            processBuffer();
-        }
-    }else{
-        var floatbuff = new Float32Array(e.data);
-        packetBuffer.push(floatbuff);
-        if(NetBuff!==null){
-            processBuffer();
-        }
-    }
-}
-
-
-function Record(){
-  //msg.textContent = "TOUCH";
-  if(recording) return;
-  //msg.textContent = "Going";
-  recBuffer = [];
+function PowerOn(){
   if(audioCtx===undefined){
     audioCtx = new (window.AudioContext || window.webkitAudioContext)({sampleRate:SAMPLE_SIZE});
-    msg.textContent = "Audio Sample Rate: " + audioCtx.sampleRate +"Hz";
+    msg["msg3"].textContent = "Sample Rate: " + audioCtx.sampleRate +"Hz";
+    msg["msg2"].textContent = "Chan: " + CHANNEL_ID;
     NetBuff = audioCtx.createBuffer(1, BUFFSIZE * 8, SAMPLE_SIZE);
     NetChanData = NetBuff.getChannelData(0);
     navigator.mediaDevices.getUserMedia({ audio: true })
         .then(function (s) {
-            //msg.textContent = "CREATING SOURCE";
             mic = audioCtx.createMediaStreamSource(s);
             scriptNode = audioCtx.createScriptProcessor(BUFFSIZE, 1, 1);
             buffersource = audioCtx.createBufferSource();
             buffersource.buffer = NetBuff;
             buffersource.connect(audioCtx.destination);
             buffersource.start();
-            
+            CreateWebsocket();
             
             scriptNode.onaudioprocess = function(audioData){
-                //msg.textContent = "PROCESSING"
                 if(recording){
-                    //msg.textContent = "TX";
                     var bytes = new Float32Array(audioData.inputBuffer.getChannelData(0));
                     ws.send(bytes);
                     recBuffer.push(bytes);
@@ -126,16 +130,20 @@ function Record(){
         .catch(function (e) {
             console.log('Darn something bad happened ' + e);
         });
-    }
-    //msg.textContent="MIC?"
+    }  
+}
+
+function Record(){
+    if(recording) return;
+
+    recBuffer = [];
     if(mic !== null){
-        //msg.textContent = "NULL?"
         if(buffersource!== null){
            buffersource.disconnect();
         }
-        //msg.textContent = "STARTING";
         mic.connect(scriptNode);
         scriptNode.connect(audioCtx.destination);
+        msg["msg1"].textContent = "TX";
         ws.send("TX");
         recording =  true;
     }
@@ -143,7 +151,7 @@ function Record(){
 
 function StopRecord(){
     if(mic!=null){
-        //msg.textContent = "";
+        msg["msg1"].textContent = "";
         ws.send("OV");
         recording = false;
         scriptNode.disconnect();

@@ -79,8 +79,11 @@ function PowerOn(){
             poweredOn = true;
         },
         (error)=>{
-            msg["msg3"].textContent = error;
-        });     
+            msg["msg1"].textContent = error;
+            msg["msg2"].textContent = "";
+            msg["msg3"].textContent = "";
+        });
+        msg["msg2"].textContent = "Connecting...";
     }
     else{
         ws.close();

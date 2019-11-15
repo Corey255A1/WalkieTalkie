@@ -77,6 +77,9 @@ function PowerOn(){
             msg["msg2"].textContent = "Chan: " + CHANNEL_ID;
             CreateWebsocket();
             poweredOn = true;
+        },
+        (error)=>{
+            msg["msg3"].textContent = error;
         });     
     }
     else{

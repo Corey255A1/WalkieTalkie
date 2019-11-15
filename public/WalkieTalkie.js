@@ -2,7 +2,9 @@ var audioCtx = undefined;
 var audioBuff = null;
 var scriptNode = null;
 const BUFFSIZE = 256;
-const SAMPLE_SIZE = 8192;
+const RX_SAMPLE_RATE = 8000;
+var TX_SAMPLE_RATE = 48000;
+var SUB_SAMPLE_RATE = 44;
 var buffersource = null;
 var mic = null;
 
@@ -15,6 +17,10 @@ var audioFinished = true;
 var packetBuffer = [];
 var receivingTx = false;
 
+var subSampleIdx = 0;
+//var subSampleBuffer = new Int8Array(BUFFSIZE);
+var subSampleBuffer = new Float32Array(BUFFSIZE);
+
 const recordBtn = document.getElementById("ptt");
 const speaker = document.getElementById("speaker");
 const msg = {
@@ -22,8 +28,8 @@ const msg = {
     msg2:document.getElementById("msg2"),
     msg3:document.getElementById("msg3"),
 }
-const powerBtn = document.getElementById("power");
 
+const powerBtn = document.getElementById("power");
 const getLink = document.getElementById("getlink");
 const link = document.getElementById("link");
 
@@ -44,8 +50,8 @@ window.oncontextmenu = function(event) {
      return false;
 };
 
-var ws = null;
 
+var ws = null;
 function CreateWebsocket(){
     ws = new WebSocket(WEBSOCKET_CHANNEL || "wss://192.168.1.88:2345",'walkietalkie');
     ws.binaryType = 'arraybuffer';
@@ -53,7 +59,7 @@ function CreateWebsocket(){
         ws.send("HELLO WORLD");
     }
     ws.onmessage = function(e){
-    if(typeof e.data === "string"){
+        if(typeof e.data === "string"){
             console.log("CMD:" + e.data);
             if(e.data==="TX"){
                 msg["msg1"].textContent = "RX";
@@ -114,12 +120,29 @@ function processBuffer(){
     }
 }
 
+
+function SubSampleBuffer(buffer)
+{
+    for(var b=0; b<BUFFSIZE; b+=SUB_SAMPLE_RATE){
+        subSampleBuffer[subSampleIdx] = buffer[b];
+        subSampleIdx++;
+        if(subSampleIdx===BUFFSIZE){
+            ws.send(subSampleBuffer);
+            subSampleBuffer = new Float32Array(BUFFSIZE);
+            subSampleIdx = 0;
+        }
+    }
+}
+
 function PowerOn(){
   if(audioCtx===undefined){
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)({sampleRate:SAMPLE_SIZE});
-    msg["msg3"].textContent = "Sample Rate: " + audioCtx.sampleRate +"Hz";
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    TX_SAMPLE_RATE = audioCtx.sampleRate;
+    SUB_SAMPLE_RATE = Math.round(TX_SAMPLE_RATE/RX_SAMPLE_RATE);
+    
+    msg["msg3"].textContent = RX_SAMPLE_RATE +":" + TX_SAMPLE_RATE +":"+SUB_SAMPLE_RATE;
     msg["msg2"].textContent = "Chan: " + CHANNEL_ID;
-    NetBuff = audioCtx.createBuffer(1, BUFFSIZE * 8, SAMPLE_SIZE);
+    NetBuff = audioCtx.createBuffer(1, BUFFSIZE * 8, RX_SAMPLE_RATE);
     NetChanData = NetBuff.getChannelData(0);
     navigator.mediaDevices.getUserMedia({ audio: true })
         .then(function (s) {
@@ -133,9 +156,9 @@ function PowerOn(){
             
             scriptNode.onaudioprocess = function(audioData){
                 if(recording){
-                    var bytes = new Float32Array(audioData.inputBuffer.getChannelData(0));
-                    ws.send(bytes);
-                    recBuffer.push(bytes);
+                    SubSampleBuffer(audioData.inputBuffer.getChannelData(0));
+                    //var bytes = new Float32Array(audioData.inputBuffer.getChannelData(0));
+                    //ws.send(bytes);
                 }
             };
         })
@@ -147,8 +170,8 @@ function PowerOn(){
 
 function Record(){
     if(recording) return;
-
-    recBuffer = [];
+    subSampleIdx = 0;
+    //recBuffer = [];
     if(mic !== null){
         if(buffersource!== null){
            buffersource.disconnect();
@@ -171,30 +194,9 @@ function StopRecord(){
     }
 }
 
-function Playback(){
-    var buff = audioCtx.createBuffer(1, recBuffer.length*BUFFSIZE, audioCtx.sampleRate);
-    var chanData = buff.getChannelData(0);
-    var tb = 0;
-    for(var b=0; b<recBuffer.length;b++){
-        for(var ab=0; ab<recBuffer[b].length; ab++){
-            chanData[tb] = recBuffer[b][ab];
-            tb++;
-        }
-    }
-    buffersource = audioCtx.createBufferSource();
-    buffersource.buffer = buff
-    buffersource.connect(audioCtx.destination);
-    buffersource.start();
-    
-    
-}
-
 
 recordBtn.addEventListener("mousedown", Record);
 recordBtn.addEventListener("mouseup", StopRecord);
 
 recordBtn.addEventListener("touchstart", Record);
 recordBtn.addEventListener("touchend", StopRecord);
-
-
-//document.querySelector("#play").addEventListener("click", Playback);

@@ -5,7 +5,14 @@ const path = require('path');
 const fs = require('fs');
 const app = Express();
 
-const ROOT = "127.0.0.1";
+
+
+
+const ROOT = process.env.root_address || "127.0.0.1";
+const PORT = process.env.port || 443
+
+console.log("PORT:" + PORT);
+console.log("ROOT_ADDRESS:" + ROOT);
 
 app.use(Express.static(__dirname + '/public'));
 app.set('view engine', 'ejs'); 
@@ -33,7 +40,7 @@ app.get('/channel/:channelID',(req,res)=>{
 const webServer = https.createServer({
     key:fs.readFileSync('walkieserver.key'),
     cert: fs.readFileSync('walkieserver.cert')},
-    app).listen(process.env.PORT || 443, "0.0.0.0", ()=>{
+    app).listen(PORT, "0.0.0.0", ()=>{
         console.log("LISTENING HTTPS!");
     })
 

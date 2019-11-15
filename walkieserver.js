@@ -5,13 +5,12 @@ const path = require('path');
 const fs = require('fs');
 const app = Express();
 
-const ROOT = "192.168.1.88:2345";
+const ROOT = "127.0.0.1";
 
 app.use(Express.static(__dirname + '/public'));
 app.set('view engine', 'ejs'); 
 
 app.get('/',(req,res)=>{
-    //res.sendFile(path.join(__dirname + '/public/WalkieTalkie.html'));
     //create random channel
     var chan = createChannelString();
     res.render("walkietalkie",{
@@ -21,10 +20,8 @@ app.get('/',(req,res)=>{
     });
 })
 
-//Use hte channelID to specify the "channel" of the radio
+//Use the channelID to specify the "channel" of the radio
 app.get('/channel/:channelID',(req,res)=>{
-    //console.log(req.params.channelID);
-    //res.sendFile(path.join(__dirname + '/public/WalkieTalkie.html'));
     res.render("walkietalkie",{
         socketPath: "wss://"+ROOT+"/channel/"+req.params.channelID,
         channelID: req.params.channelID,
@@ -109,7 +106,6 @@ function createChannelString(){
 
 //Verify cross origin and all that nonsense
 wsServer.on('request', function(req){
-    console.log("connection requested");
     var conn = req.accept('walkietalkie', req.origin);
     //Not Very Secure
     if(req.resource.startsWith("/channel/")){
@@ -118,7 +114,7 @@ wsServer.on('request', function(req){
     else{
         conn.ChannelID = "/channel/"+createChannelString();
     }
-    if(!(conn.ChannelID in ChannelMap)){
+    if(!(conn.ChannelID in ChannelMap) || ChannelMap[conn.ChannelID] === undefined){
         ChannelMap[conn.ChannelID] = createChannelEntry();
     }
     ChannelMap[conn.ChannelID].clientList.push(conn);
@@ -132,6 +128,9 @@ wsServer.on('request', function(req){
     conn.on('close',function(reason,desc){
         var idx = ChannelMap[conn.ChannelID].clientList.indexOf(conn);
         ChannelMap[conn.ChannelID].clientList.splice(idx, 1);
+        if(ChannelMap[conn.ChannelID].clientList.length===0){
+            delete ChannelMap[conn.ChannelID];
+        }
     })
     
 })
@@ -142,8 +141,7 @@ setInterval(()=>{
     {
         if(ChannelMap[c].tick===0)
         {
-            StopTransmitting(ChannelMap[c]);
-            
+            StopTransmitting(ChannelMap[c]);            
         }
         else
         {

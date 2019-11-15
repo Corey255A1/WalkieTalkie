@@ -19,31 +19,61 @@ function AudioHandler()
     me.Initialized = false;
     me.TxBufferFullCallback = null;
 
-    me.Initialize = function(initializedCB){
+    me.createAudioContext = function(stream){
+        me.MediaStreamSource = me.audioCtx.createMediaStreamSource(stream);
+        me.scriptNode = me.audioCtx.createScriptProcessor(me.BUFFSIZE, 1, 1);
+        me.BufferSource = me.audioCtx.createBufferSource();
+        me.BufferSource.buffer = me.PlaybackAudioBuffer;
+        me.BufferSource.connect(me.audioCtx.destination);
+        me.BufferSource.start();                    
+        me.scriptNode.onaudioprocess = function(audioData){
+            if(me.recording){
+                me.SubSampleBuffer(audioData.inputBuffer.getChannelData(0));
+            }
+        };
+    }
+
+    me.Initialize = function(initializedCB, erroCB){
         if(me.audioCtx===null){
             me.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             me.TX_SAMPLE_RATE = me.audioCtx.sampleRate;
             me.SUB_SAMPLE_RATE = Math.round(me.TX_SAMPLE_RATE/me.RX_SAMPLE_RATE);
-            me.PlaybackAudioBuffer = me.audioCtx.createBuffer(1, me.BUFFSIZE * 8, me.RX_SAMPLE_RATE);            
+            me.PlaybackAudioBuffer = me.audioCtx.createBuffer(1, me.BUFFSIZE * 8, me.RX_SAMPLE_RATE); 
+            if(navigator.mediaDevices.getUserMedia)
+            {          
             navigator.mediaDevices.getUserMedia({ audio: true })
                 .then(function (s) {
-                    me.MediaStreamSource = me.audioCtx.createMediaStreamSource(s);
-                    me.scriptNode = me.audioCtx.createScriptProcessor(me.BUFFSIZE, 1, 1);
-                    me.BufferSource = me.audioCtx.createBufferSource();
-                    me.BufferSource.buffer = me.PlaybackAudioBuffer;
-                    me.BufferSource.connect(me.audioCtx.destination);
-                    me.BufferSource.start();                    
-                    me.scriptNode.onaudioprocess = function(audioData){
-                        if(me.recording){
-                            me.SubSampleBuffer(audioData.inputBuffer.getChannelData(0));
-                        }
-                    };
+                    me.createAudioContext(s);
                     me.Initialized = true;
-                    if(initializedCB!==null && initializedCB!==undefined){ initializedCB(); }
+                    if(initializedCB){ initializedCB(); }
                 })
                 .catch(function (e) {
                     console.log('Darn something bad happened ' + e);
-                });            
+                    if(erroCB){erroCB(e);}
+                });
+            }
+            else{
+                var GetUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+                if(GetUserMedia)
+                {
+                    GetUserMedia({ audio: true },
+                        function(s) {
+                            me.createAudioContext(s);
+                            me.Initialized = true;
+                            if(initializedCB){ initializedCB(); }
+                        },
+                        function(e) {
+                            console.log('Darn something bad happened ' + e);
+                            if(erroCB){erroCB(e);}
+                        }
+                     );
+                }
+                else
+                {
+                    console.log("No User Media");
+                    if(erroCB){erroCB("NO USERMEDIA");}
+                }
+            }           
         }
     }
 

@@ -8,8 +8,8 @@ const app = Express();
 
 
 
-const ROOT = process.env.root_address || "127.0.0.1";
-const PORT = process.env.port || 443
+const ROOT = process.env["ROOT_ADDRESS"] || "127.0.0.1";
+const PORT = process.env["PORT"] || 443
 
 console.log("PORT:" + PORT);
 console.log("ROOT_ADDRESS:" + ROOT);

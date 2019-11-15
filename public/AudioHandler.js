@@ -43,6 +43,7 @@ function AudioHandler()
             }
             catch(error){
                 erroCB("1: " + error);
+                return;
             }
             if(navigator.mediaDevices.getUserMedia)
             {          
@@ -53,6 +54,7 @@ function AudioHandler()
                     }
                     catch(error){
                         erroCB("2: " + error);
+                        return;
                     }
                     me.Initialized = true;
                     if(initializedCB){ initializedCB(); }

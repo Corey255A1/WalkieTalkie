@@ -1,26 +1,7 @@
-var audioCtx = undefined;
-var audioBuff = null;
-var scriptNode = null;
-const BUFFSIZE = 256;
-const RX_SAMPLE_RATE = 8000;
-var TX_SAMPLE_RATE = 48000;
-var SUB_SAMPLE_RATE = 44;
-var buffersource = null;
-var mic = null;
 
-var recording = false;
-
-var recBuffer = [];
-var NetBuff = null; 
-var NetChanData = null;
-var audioFinished = true;
-var packetBuffer = [];
+const AudioController = new AudioHandler();
 var receivingTx = false;
-
-var subSampleIdx = 0;
-//var subSampleBuffer = new Int8Array(BUFFSIZE);
-var subSampleBuffer = new Float32Array(BUFFSIZE);
-
+var poweredOn = false;
 const recordBtn = document.getElementById("ptt");
 const speaker = document.getElementById("speaker");
 const msg = {
@@ -28,11 +9,9 @@ const msg = {
     msg2:document.getElementById("msg2"),
     msg3:document.getElementById("msg3"),
 }
-
 const powerBtn = document.getElementById("power");
 const getLink = document.getElementById("getlink");
 const link = document.getElementById("link");
-
 getLink.addEventListener("click", ()=>{
   link.classList.add("copy");
   link.select();
@@ -40,8 +19,19 @@ getLink.addEventListener("click", ()=>{
   document.execCommand("copy");
   link.classList.remove("copy");
 });
-
 powerBtn.addEventListener("click", PowerOn);
+function StartRecord(){
+    AudioController.StartRecord();
+    msg["msg1"].textContent = "TX";
+}
+function StopRecord(){
+    AudioController.StopRecord();
+    msg["msg1"].textContent = "";
+}
+recordBtn.addEventListener("mousedown", StartRecord);
+recordBtn.addEventListener("mouseup", StopRecord);
+recordBtn.addEventListener("touchstart", StartRecord);
+recordBtn.addEventListener("touchend", StopRecord);
 
 
 window.oncontextmenu = function(event) {
@@ -64,139 +54,37 @@ function CreateWebsocket(){
             if(e.data==="TX"){
                 msg["msg1"].textContent = "RX";
                 receivingTx = true;
-                mic.disconnect();
-                scriptNode.disconnect();
+                AudioController.DisconnectMicrophone();
                 speaker.classList.add("speaker-talking");
             }
             else if(e.data==="OV" && receivingTx){
                 msg["msg1"].textContent = "";
                 receivingTx = false;
                 speaker.classList.remove("speaker-talking");
-                processBuffer();
+                AudioController.ProcessBuffer(true);
             }
         }else{
-            var floatbuff = new Float32Array(e.data);
-            packetBuffer.push(floatbuff);
-            if(NetBuff!==null){
-                processBuffer();
-            }
+            AudioController.PushToBuffer(e.data);
         }
     }
-}
-
-
-function audioFinishedCB(){
-    audioFinished = true;
-    processBuffer();
-}
-
-function processBuffer(){
-    if(audioFinished && 
-        (packetBuffer.length>7 || 
-        (receivingTx===false && packetBuffer.length>0)))
-    {
-        var netChanIdx=0;
-        for(var buffs=0; buffs<8; buffs++){
-            if(packetBuffer.length>0){
-                var floatbuff = packetBuffer.shift();
-                for(var ab=0; ab<floatbuff.length; ab++){
-                    NetChanData[netChanIdx] = floatbuff[ab];
-                    netChanIdx++;
-                }
-            }
-            else{
-                for(var pad=0; pad<BUFFSIZE; pad++){
-                    NetChanData[netChanIdx] = 0;
-                    netChanIdx++;
-                }
-            }
-        }
-        buffersource = audioCtx.createBufferSource();
-        buffersource.buffer = NetBuff;
-        buffersource.onended = audioFinishedCB;
-        audioFinished = false;
-        buffersource.connect(audioCtx.destination);
-        buffersource.start();
-    }
-}
-
-
-function SubSampleBuffer(buffer)
-{
-    for(var b=0; b<BUFFSIZE; b+=SUB_SAMPLE_RATE){
-        subSampleBuffer[subSampleIdx] = buffer[b];
-        subSampleIdx++;
-        if(subSampleIdx===BUFFSIZE){
-            ws.send(subSampleBuffer);
-            subSampleBuffer = new Float32Array(BUFFSIZE);
-            subSampleIdx = 0;
-        }
-    }
+    AudioController.TxBufferFullCallback = (buffer)=>{ ws.send(buffer); }
 }
 
 function PowerOn(){
-  if(audioCtx===undefined){
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    TX_SAMPLE_RATE = audioCtx.sampleRate;
-    SUB_SAMPLE_RATE = Math.round(TX_SAMPLE_RATE/RX_SAMPLE_RATE);
-    
-    msg["msg3"].textContent = RX_SAMPLE_RATE +":" + TX_SAMPLE_RATE +":"+SUB_SAMPLE_RATE;
-    msg["msg2"].textContent = "Chan: " + CHANNEL_ID;
-    NetBuff = audioCtx.createBuffer(1, BUFFSIZE * 8, RX_SAMPLE_RATE);
-    NetChanData = NetBuff.getChannelData(0);
-    navigator.mediaDevices.getUserMedia({ audio: true })
-        .then(function (s) {
-            mic = audioCtx.createMediaStreamSource(s);
-            scriptNode = audioCtx.createScriptProcessor(BUFFSIZE, 1, 1);
-            buffersource = audioCtx.createBufferSource();
-            buffersource.buffer = NetBuff;
-            buffersource.connect(audioCtx.destination);
-            buffersource.start();
+    if(!poweredOn){
+        AudioController.Initialize(()=>{
+            msg["msg3"].textContent = AudioController.RX_SAMPLE_RATE +":" + AudioController.TX_SAMPLE_RATE +":"+AudioController.SUB_SAMPLE_RATE;
+            msg["msg2"].textContent = "Chan: " + CHANNEL_ID;
             CreateWebsocket();
-            
-            scriptNode.onaudioprocess = function(audioData){
-                if(recording){
-                    SubSampleBuffer(audioData.inputBuffer.getChannelData(0));
-                    //var bytes = new Float32Array(audioData.inputBuffer.getChannelData(0));
-                    //ws.send(bytes);
-                }
-            };
-        })
-        .catch(function (e) {
-            console.log('Darn something bad happened ' + e);
-        });
-    }  
-}
-
-function Record(){
-    if(recording) return;
-    subSampleIdx = 0;
-    //recBuffer = [];
-    if(mic !== null){
-        if(buffersource!== null){
-           buffersource.disconnect();
-        }
-        mic.connect(scriptNode);
-        scriptNode.connect(audioCtx.destination);
-        msg["msg1"].textContent = "TX";
-        ws.send("TX");
-        recording =  true;
+            poweredOn = true;
+        });     
     }
-}
-
-function StopRecord(){
-    if(mic!=null){
+    else{
+        ws.close();
+        AudioController.Close();
         msg["msg1"].textContent = "";
-        ws.send("OV");
-        recording = false;
-        scriptNode.disconnect();
-        mic.disconnect();
+        msg["msg2"].textContent = "";
+        msg["msg3"].textContent = "";        
+        poweredOn = false;
     }
 }
-
-
-recordBtn.addEventListener("mousedown", Record);
-recordBtn.addEventListener("mouseup", StopRecord);
-
-recordBtn.addEventListener("touchstart", Record);
-recordBtn.addEventListener("touchend", StopRecord);

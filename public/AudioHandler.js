@@ -18,6 +18,7 @@ function AudioHandler()
     me.subSampleBuffer = new Int8Array(me.BUFFSIZE);
     me.Initialized = false;
     me.TxBufferFullCallback = null;
+    me.RateAdjust = 1.0;
 
     me.createAudioContext = function(stream){
         me.MediaStreamSource = me.audioCtx.createMediaStreamSource(stream);
@@ -35,15 +36,15 @@ function AudioHandler()
 
     me.Initialize = function(initializedCB, erroCB){
         if(me.audioCtx===null){
+            me.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            me.TX_SAMPLE_RATE = me.audioCtx.sampleRate;
+            me.SUB_SAMPLE_RATE = Math.round(me.TX_SAMPLE_RATE/me.RX_SAMPLE_RATE);
             try{
-                me.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                me.TX_SAMPLE_RATE = me.audioCtx.sampleRate;
-                me.SUB_SAMPLE_RATE = Math.round(me.TX_SAMPLE_RATE/me.RX_SAMPLE_RATE);
-                me.PlaybackAudioBuffer = me.audioCtx.createBuffer(1, me.BUFFSIZE * 8, me.RX_SAMPLE_RATE); 
+                me.PlaybackAudioBuffer = me.audioCtx.createBuffer(1, me.BUFFSIZE * 8, me.RX_SAMPLE_RATE);
             }
             catch(error){
-                erroCB("1: " + error);
-                return;
+                me.PlaybackAudioBuffer = me.audioCtx.createBuffer(1, me.BUFFSIZE * 8, me.TX_SAMPLE_RATE);
+                me.RateAdjust = me.RX_SAMPLE_RATE/me.TX_SAMPLE_RATE;
             }
             if(navigator.mediaDevices.getUserMedia)
             {          
@@ -136,6 +137,7 @@ function AudioHandler()
             me.BufferSource = me.audioCtx.createBufferSource();
             me.BufferSource.buffer = me.PlaybackAudioBuffer;
             me.BufferSource.onended = me.AudioFinishedPlaying;
+            me.BufferSource.playbackRate.value = me.RateAdjust;
             me.audioFinished = false;
             me.BufferSource.connect(me.audioCtx.destination);
             me.BufferSource.start();

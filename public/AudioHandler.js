@@ -35,15 +35,25 @@ function AudioHandler()
 
     me.Initialize = function(initializedCB, erroCB){
         if(me.audioCtx===null){
-            me.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            me.TX_SAMPLE_RATE = me.audioCtx.sampleRate;
-            me.SUB_SAMPLE_RATE = Math.round(me.TX_SAMPLE_RATE/me.RX_SAMPLE_RATE);
-            me.PlaybackAudioBuffer = me.audioCtx.createBuffer(1, me.BUFFSIZE * 8, me.RX_SAMPLE_RATE); 
+            try{
+                me.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                me.TX_SAMPLE_RATE = me.audioCtx.sampleRate;
+                me.SUB_SAMPLE_RATE = Math.round(me.TX_SAMPLE_RATE/me.RX_SAMPLE_RATE);
+                me.PlaybackAudioBuffer = me.audioCtx.createBuffer(1, me.BUFFSIZE * 8, me.RX_SAMPLE_RATE); 
+            }
+            catch(error){
+                erroCB("1: " + error);
+            }
             if(navigator.mediaDevices.getUserMedia)
             {          
             navigator.mediaDevices.getUserMedia({ audio: true })
                 .then(function (s) {
-                    me.createAudioContext(s);
+                    try{
+                        me.createAudioContext(s);
+                    }
+                    catch(error){
+                        erroCB("2: " + error);
+                    }
                     me.Initialized = true;
                     if(initializedCB){ initializedCB(); }
                 })

@@ -12,6 +12,19 @@ const msg = {
 const powerBtn = document.getElementById("power");
 const getLink = document.getElementById("getlink");
 const link = document.getElementById("link");
+const handset = document.getElementById("handset");
+const display = document.getElementById("display");
+
+var currentColor = "yellow";
+document.querySelectorAll(".color-picker").forEach((colorp)=>{
+    colorp.addEventListener("click",()=>{
+        handset.classList.remove(currentColor);
+        handset.classList.add(colorp.id);
+        currentColor = colorp.id;
+    })
+})
+
+
 getLink.addEventListener("click", ()=>{
   link.classList.add("copy");
   link.select();
@@ -19,14 +32,19 @@ getLink.addEventListener("click", ()=>{
   document.execCommand("copy");
   link.classList.remove("copy");
 });
+
 powerBtn.addEventListener("click", PowerOn);
 function StartRecord(){
-    AudioController.StartRecord();
-    msg["msg1"].textContent = "TX";
+    if(AudioController.Initialized){
+        AudioController.StartRecord();
+        msg["msg1"].textContent = "TX";
+    }
 }
 function StopRecord(){
-    AudioController.StopRecord();
-    msg["msg1"].textContent = "";
+    if(AudioController.Initialized){
+        AudioController.StopRecord();
+        msg["msg1"].textContent = "";
+    }
 }
 recordBtn.addEventListener("mousedown", StartRecord);
 recordBtn.addEventListener("mouseup", StopRecord);
@@ -71,26 +89,30 @@ function CreateWebsocket(){
 }
 
 function PowerOn(){
-    if(!poweredOn){
+    if(!poweredOn)
+    {
         AudioController.Initialize(()=>{
             msg["msg3"].textContent = AudioController.RX_SAMPLE_RATE +":" + AudioController.TX_SAMPLE_RATE +":"+AudioController.SUB_SAMPLE_RATE;
             msg["msg2"].textContent = "Chan: " + CHANNEL_ID;
             CreateWebsocket();
-            poweredOn = true;
+            poweredOn = true;            
         },
         (error)=>{
             msg["msg1"].textContent = error;
             msg["msg2"].textContent = "";
             msg["msg3"].textContent = "";
         });
+        display.classList.add("powered");
         msg["msg2"].textContent = "Connecting...";
     }
-    else{
+    else
+    {
         ws.close();
         AudioController.Close();
         msg["msg1"].textContent = "";
         msg["msg2"].textContent = "";
         msg["msg3"].textContent = "";        
         poweredOn = false;
+        display.classList.remove("powered");
     }
 }

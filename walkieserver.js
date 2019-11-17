@@ -1,15 +1,15 @@
+const usingNGINX = (process.env["USE_NGINX"]=="true");
+
 const WebSocketServer = require("websocket").server;
-const https = require("https");
+const http = usingNGINX ? require("http") : require("https");
 const Express = require('express');
 const path = require('path');
 const fs = require('fs');
 const app = Express();
 
 
-
-
 const ROOT = process.env["ROOT_ADDRESS"] || "127.0.0.1";
-const PORT = process.env["PORT"] || 443
+const PORT = process.env["PORT"] || 443;
 
 console.log("PORT:" + PORT);
 console.log("ROOT_ADDRESS:" + ROOT);
@@ -37,12 +37,16 @@ app.get('/channel/:channelID',(req,res)=>{
     
 })
 
-const webServer = https.createServer({
-    key:fs.readFileSync('walkieserver.key'),
-    cert: fs.readFileSync('walkieserver.cert')},
-    app).listen(PORT, "0.0.0.0", ()=>{
+const webServer = usingNGINX ? 
+    http.createServer(app).listen(PORT, "127.0.0.1", ()=>{
         console.log("LISTENING HTTPS!");
-    })
+    }) :
+    http.createServer({
+        key:fs.readFileSync('walkieserver.key'),
+        cert: fs.readFileSync('walkieserver.cert')},
+        app).listen(PORT, "0.0.0.0", ()=>{
+            console.log("LISTENING HTTPS!");
+    });
 
 wsServer = new WebSocketServer({
     httpServer: webServer,

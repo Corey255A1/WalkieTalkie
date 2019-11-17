@@ -9,8 +9,14 @@
 <body>
     <div class="container">
         <div class="handset-container">
+            <div>
+                <button id="yellow" class="color-picker yellow"></button>
+                <button id="pink" class="color-picker pink"></button>
+                <button id="red" class="color-picker red"></button>
+                <button id="blue" class="color-picker blue"></button>
+            </div>
             <div class="antenna"></div>
-            <div class="handset">
+            <div id="handset" class="handset yellow">
                 <div style="text-align:left;">
                     <button id="power" class="power-btn">POWER</button>
                 </div>
@@ -18,10 +24,10 @@
                     <div id="speaker" class="speaker"></div>
                 </div>
                 <div class="box">
-                    <button id="volup" class="ctrl-btn">&#8679;</button>
-                    <button id="voldown" class="ctrl-btn">&#8681;</button>
+                    <button id="volup" class="ctrl-btn arrow-btn arrowup"></button>
+                    <button id="voldown" class="ctrl-btn arrow-btn arrowdown"></button>
                 </div>
-                <div class="radio-display">
+                <div id="display" class="radio-display">
                     <div id="msg1"></div>
                     <div id="msg2"></div>
                     <div id="msg3"></div>
@@ -29,15 +35,16 @@
                 <div class="box">
                     <!--<button class="ctrl-btn">&#8678;</button>
                     <button class="ctrl-btn">&#8680;</button>-->
-                    <button id="getlink" class="wide-btn">Get Link</button>
+                    <button id="getlink" class="wide-btn noselect">Copy Link</button>
                 </div>
                 <div class="box">
                     <div class="label">Push-To-Talk</div>
-                    <button id="ptt" class="ptt-btn"></button>
+                    <button id="ptt" class="ptt-btn noselect"></button>
                 </div>
-                <!--<div>
-                    <button id="play" class="no-select">Play Last Tx Clip</button>
-                </div>-->
+                <div class="wundervision-container">
+                    <span class="wv-wunder">Wunder</span>
+                    <span class="wv-vision">Vision</span>
+                </div>
             </div>
         </div>
         <input id="link" type="text" value="<%= link %>">

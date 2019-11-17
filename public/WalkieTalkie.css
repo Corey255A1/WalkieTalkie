@@ -1,6 +1,7 @@
 .container{
     text-align: center;
     margin: 0 auto;
+    font-family: sans-serif;
 }
 
 .handset-container{
@@ -17,19 +18,86 @@
 }
 
 .handset{
-    background-image: linear-gradient(to right, yellow, rgb(200,200,0));
     padding: 5px;
     border: 5px solid black;
     box-shadow: 5px 5px 10px black;
     border-radius: 10%;
 }
 
+.handset.yellow{
+    background-image: linear-gradient(to right, yellow, rgb(200,200,0));
+}
+.handset.blue{
+    background-image: linear-gradient(to right, rgb(0, 0, 255), rgb(0, 0, 130));
+    color:white;
+}
+.handset.red{
+    background-image: linear-gradient(to right, rgb(255, 0, 0), rgb(130, 0, 0));
+    color:yellow;
+}
+.handset.pink{
+    background-image: linear-gradient(to right, pink, rgb(130, 0, 110));
+    color:rgb(36, 0, 36);
+}
+
+.color-picker.yellow{
+    background-color: yellow;
+}
+.color-picker.blue{
+    background-color: blue;
+}
+.color-picker.red{
+    background-color: red;
+}
+.color-picker.pink{
+    background-color: rgb(255, 0, 255);
+}
+.color-picker{
+    height:35px;
+    width:35px;
+    border:3px solid black;
+    float:left;
+    border-radius: 50%;
+    margin: 5px 2px;
+}
+.color-picker:focus{
+    outline: 0;
+}
+
+@media only screen and (min-height: 0px){
+    .speaker{
+        height: 100px;
+        width: 170px;
+        border-radius: 10%;
+        margin: 10px auto 0 auto;
+    }
+}
+@media only screen and (min-height: 640px){
+    .speaker{
+        height: 170px;
+        width: 170px;
+        border-radius: 50%;
+        margin: 0px auto 0px auto;
+    }
+}
+
+.speaker{
+    background-image: radial-gradient(rgb(80, 80, 80) 0%, rgb(70, 70, 70), 15%, black 16%, rgb(80, 80, 80) 20%, rgb(50, 50, 50) 100%);
+    border: 10px solid black;
+    box-sizing: border-box;
+}
+
+.speaker-talking{
+    background-image: radial-gradient(rgb(115, 115, 115) 0%, rgb(105, 105, 105), 15%, black 16%, rgb(115, 115, 115) 20%, rgb(85, 85, 85) 100%);
+}
+
 .wide-btn{
     background-color: black;
     font-size: 1.2em;
     font-weight: bold;
-    
     color:white;
+    padding: 5px;
+    margin:0;
 }
 
 #link{
@@ -44,11 +112,15 @@
     margin: 0 auto;
     width: 150px;
     height: 75px;
-    background-color: lightgreen;
+    background-color: rgb(65, 150, 65);
     border: 2px solid green;
     text-transform: uppercase;
     font-size: 12px;
     border-radius: 5%;
+}
+
+.radio-display.powered{
+    background-color: lightgreen;
 }
 
 .radio-display > div{
@@ -59,22 +131,11 @@
 .box{
     margin: 0 auto;
     width: 200px;
-    padding: 5px;
+    padding: 3px;
     display: block;
 }
 
-.speaker{
-    height: 200px;
-    width: 200px;
-    border-radius: 50%;
-    background-image: radial-gradient(rgb(80, 80, 80) 0%, rgb(70, 70, 70), 15%, black 16%, rgb(80, 80, 80) 20%, rgb(50, 50, 50) 100%);
-    border: 10px solid black;
-    box-sizing: border-box;
-}
 
-.speaker-talking{
-    background-image: radial-gradient(rgb(115, 115, 115) 0%, rgb(105, 105, 105), 15%, black 16%, rgb(115, 115, 115) 20%, rgb(85, 85, 85) 100%);
-}
 .power-btn{
     display: inline-block;
     background-color: red;
@@ -115,11 +176,47 @@
     color:white;
     font-weight: bold;
     font-size: 1.5em;
-    margin: -5px 0;
+    margin: 0px 0;
 }
 .ctrl-btn:focus{
     outline:0;
 }
+
+.arrow-btn{
+    background: url("/imgs/arrowbtn.gif") center no-repeat;
+    background-size: 60% 60%;
+    background-color: black;
+}
+
+.arrowup{
+    border-top: 1px solid white;
+    border-left: 1px solid white;
+    border-right: 1px solid gray;
+    border-bottom: 1px solid gray;
+}
+.arrowup:active{
+    border-top: 1px solid gray;
+    border-left: 1px solid gray;
+    border-right: 1px solid white;
+    border-bottom: 1px solid white;
+    background-color: rgb(43, 43, 43);
+}
+.arrowdown{
+    border-top: 1px solid gray;
+    border-left: 1px solid white;
+    border-right: 1px solid gray;
+    border-bottom: 1px solid white;
+    -webkit-transform: scaleY(-1);
+    transform: scaleY(-1);
+}
+.arrowdown:active{
+    border-top: 1px solid white;
+    border-left: 1px solid gray;
+    border-right: 1px solid white;
+    border-bottom: 1px solid gray;
+    background-color: rgb(43, 43, 43);
+}
+
 
 .label{
     font-weight: bold;
@@ -138,4 +235,22 @@
         -ms-user-select: none; /* Internet Explorer/Edge */
             user-select: none; /* Non-prefixed version, currently
                                   supported by Chrome and Opera */
+}
+
+.wundervision-container{
+    background-color: black;
+    width: 75%;
+    margin: 0 auto;
+    font-size: 1.2em;
+    padding: 2px;
+}
+
+.wv-wunder{
+    color:yellow;
+    font-weight: bold;
+}
+
+.wv-vision{
+    color:rgb(95, 95, 255);
+    font-weight: bold;
 }

@@ -15,15 +15,23 @@ const link = document.getElementById("link");
 const handset = document.getElementById("handset");
 const display = document.getElementById("display");
 
-var currentColor = "yellow";
+
+//Setup Color Picker, Read saved color;
+var currentColor = localStorage.getItem("handsetcolor") || "yellow";
+SetHandsetColor(currentColor);
+
 document.querySelectorAll(".color-picker").forEach((colorp)=>{
     colorp.addEventListener("click",()=>{
-        handset.classList.remove(currentColor);
-        handset.classList.add(colorp.id);
-        currentColor = colorp.id;
+        SetHandsetColor(colorp.id);
+        localStorage.setItem("handsetcolor", currentColor);
     })
-})
+});
 
+function SetHandsetColor(newColor){
+    handset.classList.remove(currentColor);
+    handset.classList.add(newColor);
+    currentColor = newColor;
+}
 
 getLink.addEventListener("click", ()=>{
   link.classList.add("copy");
@@ -34,6 +42,8 @@ getLink.addEventListener("click", ()=>{
 });
 
 powerBtn.addEventListener("click", PowerOn);
+
+
 function StartRecord(){
     if(AudioController.Initialized){
         AudioController.StartRecord();

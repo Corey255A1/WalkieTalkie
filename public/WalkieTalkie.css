@@ -21,7 +21,7 @@
     padding: 5px;
     border: 5px solid black;
     box-shadow: 5px 5px 10px black;
-    border-radius: 10%;
+    border-radius: 5%;
 }
 
 .color-picker{
@@ -38,10 +38,24 @@
 
 @media only screen and (min-height: 0px){
     .speaker{
-        height: 100px;
+        height: 90px;
         width: 170px;
         border-radius: 10%;
         margin: 10px auto 0 auto;
+    }
+    .ptt-btn{
+        height: 75px;
+    }
+}
+@media only screen and (min-height: 560px){
+    .speaker{
+        height: 100px;
+        width: 170px;
+        border-radius: 10%;
+        margin: 10px auto 0px auto;
+    }
+    .ptt-btn{
+        height: 90px;
     }
 }
 @media only screen and (min-height: 640px){
@@ -50,6 +64,9 @@
         width: 170px;
         border-radius: 50%;
         margin: 0px auto 0px auto;
+    }
+    .ptt-btn{
+        height: 100px;
     }
 }
 
@@ -107,15 +124,20 @@
     display: block;
 }
 
-
 /* COLORS! */
-
 /* YELLOW */
 .color-picker.yellow{
     background-image: linear-gradient(to right, yellow, rgb(200,200,0));
 }
 .handset.yellow{
     background-image: linear-gradient(to right, yellow, rgb(200,200,0));
+}
+.yellow .ptt-btn{
+    background-color: rgb(160,160,0);
+    color:white;
+}
+.yellow .ptt-btn:active{
+    background-color: rgb(200,200,0);
 }
 
 
@@ -134,6 +156,13 @@
 .red .radio-display.powered{
     background-color: rgb(255, 90, 90);
 }
+.red .ptt-btn{
+    background-color: darkred;
+    color:white;
+}
+.red .ptt-btn:active{
+    background-color: red;
+}
 
 /* BLUE */
 .color-picker.blue{
@@ -149,6 +178,14 @@
 }
 .blue .radio-display.powered{
     background-color: rgb(90, 90, 255);
+}
+
+.blue .ptt-btn{
+    background-color: darkblue;
+    color:white;
+}
+.blue .ptt-btn:active{
+    background-color: blue;
 }
 
 
@@ -167,16 +204,14 @@
 .pink .radio-display.powered{
     background-color: rgb(250, 90, 255);
 }
-
-
-
-
-
-
-
-
-
-
+.pink .ptt-btn{
+    background-color: rgb(130, 0, 110);
+    color:pink;
+}
+.pink .ptt-btn:active{
+    background-color: pink;
+    color:rgb(130, 0, 110);
+}
 
 .power-btn{
     display: inline-block;
@@ -190,18 +225,17 @@
     margin-bottom: -15px;
     border-radius: 20%;
 }
-.power-btn:focus
-{
+.power-btn:focus{
     outline:0;
 }
 
 .ptt-btn{
-    height: 100px;
     width: 100%;
     border-radius: 20%;
     background-color: darkslategray;
     color:white;
-    font-size: 2rem;
+    text-transform: uppercase;
+    font-size: 1.3rem;
     font-weight: bold;
 }
 .ptt-btn:active{
@@ -281,10 +315,9 @@
 
 .wundervision-container{
     background-color: black;
-    width: 75%;
+    width: 90%;
     margin: 0 auto;
     font-size: 1.2em;
-    padding: 2px;
 }
 
 .wv-wunder{

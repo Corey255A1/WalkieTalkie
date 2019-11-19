@@ -89,7 +89,7 @@ function CreateWebsocket(){
                 msg["msg1"].textContent = "";
                 receivingTx = false;
                 speaker.classList.remove("speaker-talking");
-                AudioController.ProcessBuffer(true);
+                //AudioController.ProcessBuffer(true);
             }
         }else{
             AudioController.PushToBuffer(e.data);

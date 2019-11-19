@@ -150,13 +150,25 @@ function AudioHandler()
             me.recording =  true;
         }
     }
-    
+
     me.StopRecord = function(){
         if(me.MediaStreamSource!=null){            
             me.recording = false;
             me.MediaStreamSource.disconnect();
             me.scriptNode.disconnect();
             me.scriptNode.onaudioprocess = null;
+            if(me.subSampleIdx !== 0){
+                while(me.subSampleIdx < me.BUFFSIZE)
+                {
+                    me.subSampleBuffer[me.subSampleIdx] = 0;
+                    me.subSampleIdx++;
+                }
+                if(me.TxBufferFullCallback!==null)
+                {
+                    me.TxBufferFullCallback(me.subSampleBuffer);
+                }
+                me.subSampleIdx = 0;
+            }
         }
     }
 

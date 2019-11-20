@@ -82,7 +82,6 @@ function CreateWebsocket(){
             if(e.data==="TX"){
                 msg["msg1"].textContent = "RX";
                 receivingTx = true;
-                AudioController.DisconnectMicrophone();
                 speaker.classList.add("speaker-talking");
             }
             else if(e.data==="OV" && receivingTx){

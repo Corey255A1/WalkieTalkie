@@ -82,6 +82,7 @@ function AudioHandler()
 
     me.AudioFinishedPlaying = function(){
         me.audioFinished = true;
+        me.BufferSource.disconnect(me.audioCtx.destination);
         me.ProcessBuffer(false);
     }
 
@@ -93,11 +94,6 @@ function AudioHandler()
         }
     }
 
-    me.DisconnectMicrophone = function(){
-        me.MediaStreamSource.disconnect();
-        if(me.scriptNode!==null) { me.scriptNode.disconnect(); }
-    }
-
     me.ProcessBuffer = function(processIfIncomplete){
         if(me.audioFinished && me.packetBuffer.length>0)
         {
@@ -107,9 +103,6 @@ function AudioHandler()
             for(var ab=0; ab<floatbuff.length; ab++){
                 channelDataBuffer[netChanIdx] = floatbuff[ab]/127;
                 netChanIdx++;
-            }
-            if(me.BufferSource!== null){
-                me.BufferSource.disconnect();
             }
             me.BufferSource = me.audioCtx.createBufferSource();
             me.BufferSource.buffer = me.PlaybackAudioBuffer;
@@ -140,9 +133,6 @@ function AudioHandler()
         if(me.recording) return;
         me.subSampleIdx = 0;
         if(me.MediaStreamSource !== null){
-            if(me.BufferSource!== null){
-                me.BufferSource.disconnect();
-            }
             me.scriptNode = me.audioCtx.createScriptProcessor(me.BUFFSIZE, 1, 1);
             me.scriptNode.onaudioprocess = me.scriptProcessCallback;
             me.MediaStreamSource.connect(me.scriptNode);
@@ -154,8 +144,8 @@ function AudioHandler()
     me.StopRecord = function(){
         if(me.MediaStreamSource!=null){            
             me.recording = false;
-            me.MediaStreamSource.disconnect();
-            me.scriptNode.disconnect();
+            me.MediaStreamSource.disconnect(me.scriptNode);
+            me.scriptNode.disconnect(me.audioCtx.destination);
             me.scriptNode.onaudioprocess = null;
             if(me.subSampleIdx !== 0){
                 while(me.subSampleIdx < me.BUFFSIZE)

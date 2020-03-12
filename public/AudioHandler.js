@@ -19,9 +19,12 @@ function AudioHandler()
     me.Initialized = false;
     me.TxBufferFullCallback = null;
     me.RateAdjust = 1.0;
+    me.AudioStreamTrack = null;
 
     me.createAudioContext = function(stream){
         me.MediaStreamSource = me.audioCtx.createMediaStreamSource(stream);
+        //IOS Safari needs to disable and enable the track before and after disconnecting/connecting
+        me.AudioStreamTrack = me.MediaStreamSource.mediaStream.getAudioTracks()[0];
         me.BufferSource = me.audioCtx.createBufferSource();
         me.BufferSource.buffer = me.PlaybackAudioBuffer;
         me.BufferSource.connect(me.audioCtx.destination);
@@ -136,7 +139,8 @@ function AudioHandler()
             me.scriptNode = me.audioCtx.createScriptProcessor(me.BUFFSIZE, 1, 1);
             me.scriptNode.onaudioprocess = me.scriptProcessCallback;
             me.MediaStreamSource.connect(me.scriptNode);
-            me.scriptNode.connect(me.audioCtx.destination);            
+            me.scriptNode.connect(me.audioCtx.destination);   
+            me.AudioStreamTrack.enabled = true;
             me.recording =  true;
         }
     }
@@ -144,6 +148,7 @@ function AudioHandler()
     me.StopRecord = function(){
         if(me.MediaStreamSource!=null){            
             me.recording = false;
+            me.AudioStreamTrack.enabled = false;
             me.MediaStreamSource.disconnect(me.scriptNode);
             me.scriptNode.disconnect(me.audioCtx.destination);
             me.scriptNode.onaudioprocess = null;
